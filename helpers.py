@@ -35,14 +35,16 @@ def get_release_info(release, verbose=False):
     genres = release['genres']
     styles = release['styles']
     country = release['country']
-    released = release['released']
+    year = release['year']
     
     rating = release['community']['rating']
     have_want = (release['community']['have'], release['community']['want'])
     num_for_sale = release['num_for_sale']
 
     tracklist = get_tracklist_info(release["tracklist"])
-    
+    nb_track = len(tracklist)
+
+
     url = release['uri']
     
     if verbose:
@@ -58,18 +60,18 @@ def get_release_info(release, verbose=False):
         print('Genres:   %s' % genres)
         print('Styles:   %s' % styles)
         print('Country:  %s' % country)
-        print('Released: %s\n' % released)
+        print('year: %s\n' % year)
 
         print('Rating:      %s' % rating)
         print('Have/Want:   %s/%s' % (have_want[0], have_want[1]))
         print('Nb for sale: %s\n' % num_for_sale)
 
-        print('Tracklist:') 
+        print('Tracklist (%d tracks):' % nb_tracks) 
         for track in tracklist:
             print('- %s %s (%s)' % (track[0], track[1], track[2]) )
             
         print('URL: %s' % release['uri'])
             
     return release_id, master_id, artists, title, format_, \
-           labels, genres, styles, country, released, \
-           rating, have_want, num_for_sale, tracklist, url
+           labels, genres, styles, country, year, \
+           rating, have_want, num_for_sale, nb_tracks, tracklist, url
