@@ -1,4 +1,8 @@
 import numpy as np
+import requests
+import time
+from bs4 import BeautifulSoup
+
 
 def get_tracklist_info(tracklist):
     """ Only keep informations needed from the tracklist
@@ -13,6 +17,26 @@ def get_tracklist_info(tracklist):
         tracklist_info.append( (artists, title, duration) )    
         
     return(tracklist_info)
+
+
+def get_release_prices(release_url):
+    html = requests.get(release_url)
+
+    if html.status_code == 429:
+        print('Rate Limiting ! Wait 60 secondes...', end=' ')
+        time.sleep(60)
+        print('Done!')
+        html = requests.get(release_url)
+
+    soup = BeautifulSoup(html.content, 'html.parser')
+
+    # Find a best way, work only with CA$
+    lowest_price = soup.find(class_='last').find_all('li')[1].text.strip().split('CA$')[-1]
+    median_price = soup.find(class_='last').find_all('li')[2].text.strip().split('CA$')[-1]
+    highest_price = soup.find(class_='last').find_all('li')[3].text.strip().split('CA$')[-1]
+
+    return lowest_price, median_price, highest_price
+
 
 
 def get_release_info(release, verbose=False):
@@ -44,8 +68,10 @@ def get_release_info(release, verbose=False):
     tracklist = get_tracklist_info(release["tracklist"])
     nb_track = len(tracklist)
 
-
     url = release['uri']
+
+    lowest_price, median_price, highest_price = get_release_prices(url)
+
     
     if verbose:
         print('RELEASE_ID: %s\n' % release_id)
@@ -53,8 +79,7 @@ def get_release_info(release, verbose=False):
         
         print('Artists: %s' % artists)
         print('Title:   %s' % title)
-        print('Format:  %s\n' % support)
-        #print('Format:  %s\n' % format_)
+        print('Format:  %s\n' % format_)
 
         print('Labels:    %s' % labels)
         print('Genres:   %s' % genres)
@@ -65,8 +90,11 @@ def get_release_info(release, verbose=False):
         print('Rating:      %s' % rating)
         print('Have/Want:   %s/%s' % (have_want[0], have_want[1]))
         print('Nb for sale: %s\n' % num_for_sale)
+        print('Lowest price:  %f' % lowest_price)
+        print('Median price:  %f' % median_price)
+        print('Highest price: %f' % highest_price) 
 
-        print('Tracklist (%d tracks):' % nb_tracks) 
+        print('Tracklist (%d tracks):' % nb_track) 
         for track in tracklist:
             print('- %s %s (%s)' % (track[0], track[1], track[2]) )
             
@@ -74,4 +102,5 @@ def get_release_info(release, verbose=False):
             
     return release_id, master_id, artists, title, format_, \
            labels, genres, styles, country, year, \
-           rating, have_want, num_for_sale, nb_tracks, tracklist, url
+           rating, have_want, num_for_sale, lowest_price, \
+           median_price, highest_price, nb_track, tracklist, url
