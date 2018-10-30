@@ -20,6 +20,7 @@ def get_tracklist_info(tracklist):
 
 
 def get_release_prices(release_url):
+
     html = requests.get(release_url)
 
     if html.status_code == 429:
@@ -31,11 +32,12 @@ def get_release_prices(release_url):
     soup = BeautifulSoup(html.content, 'html.parser')
 
     # Find a best way, work only with CA$
+    currency, conv_to_eur = 'CA$', 0.6697
     lowest_price = soup.find(class_='last').find_all('li')[1].text.strip().split('CA$')[-1]
     median_price = soup.find(class_='last').find_all('li')[2].text.strip().split('CA$')[-1]
     highest_price = soup.find(class_='last').find_all('li')[3].text.strip().split('CA$')[-1]
 
-    return lowest_price, median_price, highest_price
+    return float(lowest_price)*conv_to_eur, float(median_price)*conv_to_eur, float(highest_price)*conv_to_eur
 
 
 
@@ -49,13 +51,9 @@ def get_release_info(release, verbose=False):
     artists_info = release["artists"]
     artists = [artists_info[idx]['name'] for idx in range(len(artists_info))]
     title = release['title']
-    format_ = release['formats'][0]['name']
-    # format_ = release['formats'][0]['descriptions']
-    
-    # labels_info = release["labels"]
-    # labels = [labels_info[idx]['name'] for idx in range(len(labels_info))]
-    # labels = [labels_info[idx]['name'] for idx in range(len(labels_info))]
-    labels = release["labels"][0]['name']
+
+    format_ = release['formats']
+    labels = release["labels"]
     genres = release['genres']
     styles = release['styles']
     country = release['country']
