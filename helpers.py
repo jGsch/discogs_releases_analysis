@@ -32,12 +32,12 @@ def get_release_prices(release_url):
     soup = BeautifulSoup(html.content, 'html.parser')
 
     # Find a best way, work only with CA$
-    currency, conv_to_eur = 'CA$', 0.6697
-    lowest_price = soup.find(class_='last').find_all('li')[1].text.strip().split('CA$')[-1]
-    median_price = soup.find(class_='last').find_all('li')[2].text.strip().split('CA$')[-1]
-    highest_price = soup.find(class_='last').find_all('li')[3].text.strip().split('CA$')[-1]
+    currency = 'CHF'
+    lowest_price = soup.find(class_='last').find_all('li')[1].text.strip().split(currency)[-1]
+    median_price = soup.find(class_='last').find_all('li')[2].text.strip().split(currency)[-1]
+    highest_price = soup.find(class_='last').find_all('li')[3].text.strip().split(currency)[-1]
 
-    return float(lowest_price)*conv_to_eur, float(median_price)*conv_to_eur, float(highest_price)*conv_to_eur
+    return float(lowest_price), float(median_price), float(highest_price)
 
 
 
@@ -52,12 +52,14 @@ def get_release_info(release, verbose=False):
     artists = [artists_info[idx]['name'] for idx in range(len(artists_info))]
     title = release['title']
 
-    format_ = release['formats']
-    labels = release["labels"]
+    labels = release["labels"][0]['name']
     genres = release['genres']
     styles = release['styles']
     country = release['country']
     year = release['year']
+
+    medium = release['formats'][0]['name']
+    description = release['formats'][0]['descriptions']
     
     rating = release['community']['rating']
     have_want = (release['community']['have'], release['community']['want'])
@@ -68,6 +70,10 @@ def get_release_info(release, verbose=False):
 
     url = release['uri']
 
+    if len(release['formats']) > 1:
+        print('\n\n', url, '\n\n')
+
+
     lowest_price, median_price, highest_price = get_release_prices(url)
 
     
@@ -77,13 +83,15 @@ def get_release_info(release, verbose=False):
         
         print('Artists: %s' % artists)
         print('Title:   %s' % title)
-        print('Format:  %s\n' % format_)
 
         print('Labels:    %s' % labels)
         print('Genres:   %s' % genres)
         print('Styles:   %s' % styles)
         print('Country:  %s' % country)
-        print('year: %s\n' % year)
+        print('Year: %s\n' % year)
+
+        print('medium: %s' % medium)
+        print('description: %s' % description)
 
         print('Rating:      %s' % rating)
         print('Have/Want:   %s/%s' % (have_want[0], have_want[1]))
@@ -98,7 +106,8 @@ def get_release_info(release, verbose=False):
             
         print('URL: %s' % release['uri'])
             
-    return release_id, master_id, artists, title, format_, \
+    return release_id, master_id, artists, title, \
            labels, genres, styles, country, year, \
-           rating, have_want, num_for_sale, lowest_price, \
-           median_price, highest_price, nb_track, tracklist, url
+           medium, description, rating, have_want, \
+           num_for_sale, lowest_price,  median_price, \
+           highest_price, nb_track, tracklist, url
